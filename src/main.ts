@@ -6,11 +6,7 @@ const cSize = {
   height: 600,
 } as const;
 
-type cSize = typeof cSize[keyof typeof cSize];
-
-export const assertIsDefined: <T>(val: T) => asserts val is NonNullable<T> = <
-  T
->(
+export const assertIsDefined: <T>(val: T) => asserts val is NonNullable<T> = <T>(
   val: T
 ): asserts val is NonNullable<T> => {
   if (val === undefined || val === null) {
@@ -34,10 +30,7 @@ const main = () => {
   gl.shaderSource(vertexShader, vertexShaderSource);
   gl.compileShader(vertexShader);
 
-  const vertexShaderCompileStatus = gl.getShaderParameter(
-    vertexShader,
-    gl.COMPILE_STATUS
-  );
+  const vertexShaderCompileStatus = gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS);
   if (!vertexShaderCompileStatus) {
     const info = gl.getShaderInfoLog(vertexShader);
     console.warn(info);
@@ -49,10 +42,7 @@ const main = () => {
   gl.shaderSource(fragmentShader, fragmentShaderSource);
   gl.compileShader(fragmentShader);
 
-  const fragmentShaderCompileStatus = gl.getShaderParameter(
-    fragmentShader,
-    gl.COMPILE_STATUS
-  );
+  const fragmentShaderCompileStatus = gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS);
   if (!fragmentShaderCompileStatus) {
     const info = gl.getShaderInfoLog(fragmentShader);
     assertIsDefined(info);
@@ -93,14 +83,7 @@ const main = () => {
   // Get and set vertex attribute
   const vertexAttribLocation = gl.getAttribLocation(program, 'vertexPosition');
   gl.enableVertexAttribArray(vertexAttribLocation);
-  gl.vertexAttribPointer(
-    vertexAttribLocation,
-    VERTEX_SIZE,
-    gl.FLOAT,
-    false,
-    0,
-    0
-  );
+  gl.vertexAttribPointer(vertexAttribLocation, VERTEX_SIZE, gl.FLOAT, false, 0, 0);
 
   // Draw triangles
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, VERTEX_NUMS);

@@ -78,12 +78,12 @@ const main = () => {
   const vertexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
   const vv = [
+    // ref: https://github.com/shunfu/webgl-experiments/blob/master/octahedron/js/octa.js
     // 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0,
     // -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0,
     // 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0,
     // 1
-    0.0,
-    1.0, 0.0,
+    0.0, 1.0, 0.0,
     // 2
     -1.0, -1.0, 1.0,
     // 3
@@ -117,6 +117,7 @@ const main = () => {
   let cubeRotation = 0.0;
   let then = 0.0;
 
+  // ref: https://github.com/mdn/dom-examples/blob/main/webgl-examples/tutorial/sample5/webgl-demo.js
   const render = (now: number) => {
     gl.enable(gl.DEPTH_TEST);
 

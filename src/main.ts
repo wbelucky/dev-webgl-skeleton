@@ -1,16 +1,13 @@
 import vertexShaderSource from './shader/verts.glsl';
 import fragmentShaderSource from './shader/flag.glsl';
+import { mat4 } from 'gl-matrix';
 
 const cSize = {
   width: 600,
   height: 600,
 } as const;
 
-type cSize = typeof cSize[keyof typeof cSize];
-
-export const assertIsDefined: <T>(val: T) => asserts val is NonNullable<T> = <
-  T
->(
+export const assertIsDefined: <T>(val: T) => asserts val is NonNullable<T> = <T>(
   val: T
 ): asserts val is NonNullable<T> => {
   if (val === undefined || val === null) {
@@ -18,7 +15,7 @@ export const assertIsDefined: <T>(val: T) => asserts val is NonNullable<T> = <
   }
 };
 
-const VERTEX_SIZE = 2;
+const VERTEX_SIZE = 3;
 
 const main = () => {
   const canvas = document.createElement('canvas');
@@ -34,10 +31,7 @@ const main = () => {
   gl.shaderSource(vertexShader, vertexShaderSource);
   gl.compileShader(vertexShader);
 
-  const vertexShaderCompileStatus = gl.getShaderParameter(
-    vertexShader,
-    gl.COMPILE_STATUS
-  );
+  const vertexShaderCompileStatus = gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS);
   if (!vertexShaderCompileStatus) {
     const info = gl.getShaderInfoLog(vertexShader);
     console.warn(info);
@@ -49,10 +43,7 @@ const main = () => {
   gl.shaderSource(fragmentShader, fragmentShaderSource);
   gl.compileShader(fragmentShader);
 
-  const fragmentShaderCompileStatus = gl.getShaderParameter(
-    fragmentShader,
-    gl.COMPILE_STATUS
-  );
+  const fragmentShaderCompileStatus = gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS);
   if (!fragmentShaderCompileStatus) {
     const info = gl.getShaderInfoLog(fragmentShader);
     assertIsDefined(info);
@@ -86,26 +77,116 @@ const main = () => {
    */
   const vertexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  const VERTEX_NUMS = 4;
-  const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+  const vv = [
+    // 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0,
+    // -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0,
+    // 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0,
+    // 1
+    0.0,
+    1.0, 0.0,
+    // 2
+    -1.0, -1.0, 1.0,
+    // 3
+    1.0, -1.0, 1.0,
+    // 4
+    0.0, 1.0, 0.0,
+    // 5
+    1.0, -1.0, 1.0,
+    // 6
+    1.0, -1.0, -1.0,
+    // 7
+    0.0, 1.0, 0.0,
+    // 8
+    1.0, -1.0, -1.0,
+    // 9
+    -1.0, -1.0, -1.0,
+    // 10
+    0.0, 1.0, 0.0,
+    // 11
+    -1.0, -1.0, -1.0,
+    // 12
+    -1.0, -1.0, 1.0,
+  ];
+
+  const VERTEX_NUMS = vv.length;
+  const vertices = new Float32Array(vv);
+
+  // TODO:
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
-  // Get and set vertex attribute
-  const vertexAttribLocation = gl.getAttribLocation(program, 'vertexPosition');
-  gl.enableVertexAttribArray(vertexAttribLocation);
-  gl.vertexAttribPointer(
-    vertexAttribLocation,
-    VERTEX_SIZE,
-    gl.FLOAT,
-    false,
-    0,
-    0
-  );
+  let cubeRotation = 0.0;
+  let then = 0.0;
 
-  // Draw triangles
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, VERTEX_NUMS);
+  const render = (now: number) => {
+    gl.enable(gl.DEPTH_TEST);
 
-  gl.flush();
+    // Draw triangles
+
+    const fieldOfView = (45 * Math.PI) / 180; // in radians
+    const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+    const zNear = 0.1;
+    const zFar = 100.0;
+    const projectionMatrix = mat4.create();
+
+    // note: glmatrix.js always has the first argument
+    // as the destination to receive the result.
+    mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
+
+    // Set the drawing position to the "identity" point, which is
+    // the center of the scene.
+    const modelViewMatrix = mat4.create();
+
+    // Now move the drawing position a bit to where we want to
+    // start drawing the square.
+
+    mat4.translate(
+      modelViewMatrix, // destination matrix
+      modelViewMatrix, // matrix to translate
+      [-0.0, 0.0, -6.0]
+    ); // amount to translate
+    mat4.rotate(
+      modelViewMatrix, // destination matrix
+      modelViewMatrix, // matrix to rotate
+      cubeRotation, // amount to rotate in radians
+      [0, 0, 1]
+    ); // axis to rotate around (Z)
+    mat4.rotate(
+      modelViewMatrix, // destination matrix
+      modelViewMatrix, // matrix to rotate
+      cubeRotation * 0.7, // amount to rotate in radians
+      [0, 1, 0]
+    ); // axis to rotate around (Y)
+    mat4.rotate(
+      modelViewMatrix, // destination matrix
+      modelViewMatrix, // matrix to rotate
+      cubeRotation * 0.3, // amount to rotate in radians
+      [1, 0, 0]
+    ); // axis to rotate around (X)
+
+    // Get and set vertex attribute
+    const vertexAttribLocation = gl.getAttribLocation(program, 'aVertexPosition');
+
+    gl.enableVertexAttribArray(vertexAttribLocation);
+    gl.vertexAttribPointer(vertexAttribLocation, VERTEX_SIZE, gl.FLOAT, false, 0, 0);
+
+    gl.uniformMatrix4fv(
+      gl.getUniformLocation(program, 'uProjectionMatrix'),
+      false,
+      projectionMatrix
+    );
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, 'uModelViewMatrix'), false, modelViewMatrix);
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, VERTEX_NUMS);
+
+    now *= 0.001; // convert to seconds
+    const deltaTime = now - then;
+    then = now;
+    cubeRotation += deltaTime;
+    console.log(cubeRotation);
+    requestAnimationFrame(render);
+  };
+
+  requestAnimationFrame(render);
 };
 
 window.onload = main;
